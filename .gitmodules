@@ -1,0 +1,6 @@
+[submodule "jc-server/packages/meteor-job-collection"]
+	path = jc-server/packages/meteor-job-collection
+	url = https://github.com/vsivsi/meteor-job-collection.git
+[submodule "jc-remote-worker/packages/meteor-job-collection"]
+	path = jc-remote-worker/packages/meteor-job-collection
+	url = https://github.com/vsivsi/meteor-job-collection.git
