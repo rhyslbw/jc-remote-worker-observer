@@ -5,7 +5,7 @@ Inside there are two Meteor apps, Server and Remote Worker. The dev branch of jo
 
 To reproduce:
 
-1. Clone repo
+1. git clone --recurse-submodules https://github.com/rhyslbw/jc-remote-worker-observer.git
 2. Start the server on the default port 3000
 3. Start the remote worker on any other port.
 
