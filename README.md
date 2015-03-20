@@ -9,13 +9,16 @@ To reproduce:
 2. Start the server on the default port 3000
 3. Start the remote worker on any other port.
 
-The server app creates:
-- A JobCollection
-- User
-- Test job
+The server app:
+- Creates a JobCollection
+- Creates a user if required
+- Clears out any previous job documents
+- Creates a new job every 3 seconds
+- Publishes the cursor
 
-The worker:
+The worker (server-only):
 - connects via DDP.connect to the server and authenticates
-- sets up the collection, and observes it for additions to trigger the worker
+- sets up the remote collection, and observes it for added messages to trigger the worker.
+- The worker prints two fields from the job data properties object to the console.
 
 
