@@ -1,7 +1,7 @@
 # jc-remote-worker-observer
 Demonstration of an issue with Job-Collection and a remote Meteor worker
 
-Inside there are two Meteor apps, Server and Remote Worker. The dev branch of job-collection and job have been cloned and added to the projects.
+Inside there are two Meteor apps, jc-server and jc-remote-worker. The dev branch of job-collection and job have been linked as submodules.
 
 To reproduce:
 
