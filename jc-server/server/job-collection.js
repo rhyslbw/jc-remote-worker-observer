@@ -1,37 +1,42 @@
 jc = new JobCollection('queueJobs');
 
+jc.remove({});
+Meteor.users.remove({});
+Accounts.createUser({
+  email: 'remote@worker.com',
+  password: "password"
+});
+
+jc.setLogStream(process.stdout);
+
+// Remote worker must be authenticated
 jc.allow({
-  admin: function (userId, method, params) {
+  worker: function (userId, method, params) {
     return (userId ? true : false);
   }
 });
-
-if(Meteor.users.find().count() === 0) {
-  Accounts.createUser({
-    email: 'test@email.com',
-    password: "password"
-  });
-}
-
-if(jc.find().count() !== 0) {
-  jc.remove({}, function(error, result){
-    if(!error)
-      console.log('Collection reset. ' + result + ' existing job documents removed');
-  });
-}
 
 Meteor.startup(function () {
 
   jc.startJobServer({},function(error, result){
     if(!error){
 
-      console.log('Job Server Started. Here comes a new job every 3 seconds');
+      console.log('Job Server Started. A new job will be created up to 8 seconds apart');
 
-      Meteor.setInterval(function(){
-        var job = jc.createJob('logEvent', { event: 'Interval on jobServer elapsed', date: new Date() } );
-        job.priority('normal').save();
-        console.log('Total Jobs:', jc.find().count());
-      }, 3000);
+      // This is just simulating an event that creates a job at a random interval.
+      (function loop() {
+        var randomInterval = Math.round(Math.random() * 8000);
+        Meteor.setTimeout(function() {
+
+          var job = jc.createJob('logEvent', { event: 'New job in queue after an interval of ' + randomInterval + ' milliseconds', date: new Date() } );
+
+          // Retry forever, wait 1 second in between attempts
+          job.priority('normal').retry({wait: 1000}).save();
+          console.log('Total Jobs:', jc.find().count());
+
+          loop();
+        }, randomInterval);
+      }());
 
       Meteor.publish('queueJobs', function(){
         return jc.find();

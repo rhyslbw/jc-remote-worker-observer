@@ -1,33 +1,49 @@
 var remote = DDP.connect('http://localhost:3000/');
-remote.call('login', { user: { email: 'test@email.com'},  password: 'password' });
-
 var jc = new JobCollection('queueJobs', { connection: remote });
 
-remote.subscribe('queueJobs', function(){
-  console.log('Total Documents in remotely managed collection:', jc.find().count());
-});
 
-Meteor.startup(function(){
+var q = jc.processJobs(
+  'logEvent',
+  {
+    pollInterval: 1000000000, // Don't poll,
+  },
+  function (job, cb) {
 
-  var q = jc.processJobs(
-    'logEvent',
-    {
-      pollInterval: 1000000000, // Don't poll,
-    },
-    function (job, cb) {
-      console.log(job.data.date, job.data.event);
-      job.done();
-      cb();
-    }
-  );
-
-  jc.find({ type: 'logEvent', status: 'ready' })
-    .observe({
-      added: function() {
-        console.log('Observed doc added to collection. Triggering worker')
-        q.trigger();
+    // This is just simulating an variable running time for the job, up to 4 seconds
+    Meteor.setTimeout(function(){
+      // This simulates a random failure of the job
+      if (Math.random() > 0.5) {
+        console.log('Job ' + job._doc._id + ' Failed', job.data.date, job.data.event);
+        job.fail();
+      } else {
+        console.log('Job ' + job._doc._id + ' Done', job.data.date, job.data.event);
+        job.done();
       }
+    }, Math.round(Math.random() * 4000));
+    cb();
+  }
+);
+
+remote.onReconnect = function () {
+  console.log('CONNECTED');
+
+  remote.call( 'login',
+    {
+      user: {email: 'remote@worker.com'},
+      password: { digest: SHA256(process.env.JC_SERVER_PASSWORD), algorithm: 'sha-256'}
+    },
+    function(error, result) {
+      console.log('AUTHENTICATED');
+      remote.subscribe('queueJobs', function () {
+        console.log('SUBSCRIBED');
+        // Observes jobs ready to be worked on, including failed jobs becoming ready again. added refers to the doc being added to the results set, not just new inserts
+        jc.find({type: 'logEvent', status: 'ready'})
+          .observe({
+            added: function () {
+              console.log('OBSERVED ADDED MSG. Collection now totals', jc.find().count(), 'Triggering worker');
+              q.trigger();
+            }
+          });
+      });
     });
-
-
-});
+}
