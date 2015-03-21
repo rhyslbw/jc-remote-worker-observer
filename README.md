@@ -1,24 +1,25 @@
 # jc-remote-worker-observer
-Demonstration of an issue with Job-Collection and a remote Meteor worker
+Demonstration of a remote server-based [Job-Collection](https://github.com/vsivsi/meteor-job-collection/) worker
 
-Inside there are two Meteor apps, jc-server and jc-remote-worker. The dev branch of job-collection and job have been linked as submodules.
+Inside there are two Meteor apps, jc-server and jc-worker. Documentation is inline
 
-To reproduce:
+## Installation:
 
-1. git clone --recurse https://github.com/rhyslbw/jc-remote-worker-observer.git
+1. `git clone --recurse https://github.com/rhyslbw/jc-remote-worker-observer.git`
 2. Start the server on the default port 3000
-3. Start the remote worker on any other port.
+3. Start the remote worker on any other port, exporting an ENV variable JC_SERVER_PASSWORD='password' eg `export JC_SERVER_PASSWORD='password'; meteor -p 3100`
 
-The server app:
+###jc-server:
 - Creates a JobCollection
-- Creates a user if required
-- Clears out any previous job documents
-- Creates a new job every 3 seconds
+- Clears out any previous job documents and users for a fresh run
+- Creates a user for the worker to authenticate, satisfying the allow rules.
+- Creates a new job up to 8 seconds apart.
 - Publishes the cursor
 
-The worker (server-only):
-- connects via DDP.connect to the server and authenticates
-- sets up the remote collection, and observes it for added messages to trigger the worker.
+###jc-worker
+- Uses the internal [SHA package](https://atmospherejs.com/meteor/sha) for hashing the password.
+- connects via DDP.connect to the server and authenticates, reading in the password from an environment variable.
+- sets up the remote collection, and observes it for added and changed messages to trigger the worker function.
 - The worker prints two fields from the job data properties object to the console.
 
-
+See [this GitHub issue](https://github.com/vsivsi/meteor-job-collection/issues/59) for the background to this demo, including [more information on security](https://github.com/vsivsi/meteor-job-collection/issues/59#issuecomment-74011582) when your apps are not on a private subnet.
