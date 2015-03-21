@@ -1,11 +1,7 @@
 # jc-remote-worker-observer
 Demonstration of a remote server-based [Job-Collection](https://github.com/vsivsi/meteor-job-collection/) worker
 
-<<<<<<< HEAD
 Inside there are two Meteor apps, jc-server and jc-worker. Documentation is inline
-=======
-Inside there are two Meteor apps, jc-server and jc-remote-worker. The dev branch of job-collection and job have been linked as submodules.
->>>>>>> 5deadfab30a4cf6d129cfaee1be11d500566c052
 
 ## Installation:
 
