@@ -25,16 +25,17 @@ var q = jc.processJobs(
 );
 
 remote.onReconnect = function () {
+  var self = this;
   console.log('CONNECTED');
 
-  remote.call( 'login',
+  self.call( 'login',
     {
       user: {email: 'remote@worker.com'},
       password: { digest: SHA256(process.env.JC_SERVER_PASSWORD), algorithm: 'sha-256'}
     },
     function(error, result) {
       console.log('AUTHENTICATED');
-      remote.subscribe('queueJobs', function () {
+      self.subscribe('queueJobs', function () {
         console.log('SUBSCRIBED');
         // Observes jobs ready to be worked on, including failed jobs becoming ready again. added refers to the doc being added to the results set, not just new inserts
         jc.find({type: 'logEvent', status: 'ready'})
